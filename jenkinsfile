@@ -1,0 +1,23 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sairajss/MyJenkinTest.git'
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                bat 'pip install pytest'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'pytest tests/test_login.py'
+            }
+        }
+    }
+}
