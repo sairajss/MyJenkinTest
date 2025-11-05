@@ -1,21 +1,29 @@
 pipeline {
   agent any
-  tools { python 'Python311' }
+
   stages {
-    stage('Install dependencies') {
+    // Declarative pipelines auto-checkout SCM; no separate "Checkout" stage needed.
+
+    stage('Install & Test') {
       steps {
         bat '''
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt || python -m pip install pytest
+          py -3 --version
+          py -3 -m pip install --upgrade pip
+          if exist requirements.txt (
+            py -3 -m pip install -r requirements.txt
+          ) else (
+            py -3 -m pip install pytest
+          )
+          py -3 -m pytest -q --junitxml=report.xml
         '''
       }
     }
-    stage('Run Tests') {
-      steps {
-        bat 'python -m pytest -q --junitxml=report.xml'
-      }
+  }
+
+  post {
+    always {
+      // Publish test results (won't fail the build if file is missing)
+      junit testResults: 'report.xml', allowEmptyResults: true
     }
   }
-  post { always { junit 'report.xml' } }
 }
-
